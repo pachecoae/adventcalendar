@@ -60,10 +60,7 @@ func main() {
 
 			// Check for a duplicate total
 			if totalMap[total] == 2 {
-				fmt.Print(
-					"\n",
-					"Total Count: ", total,
-				)
+				fmt.Println("Total Count: ", total)
 				solutionFound = true
 				break
 			}
@@ -74,12 +71,9 @@ func main() {
 
 	// Output the answer
 	end := time.Now()
-	fmt.Print(
-		"\n",
-		"Total Sum: ", total,
-		"\n",
-		"Time Taken: ", end.Sub(start),
-		"\n\n",
-	)
+	fmt.Println()
+	fmt.Println("Total Sum: ", total)
+	fmt.Println("Time Taken: ", end.Sub(start))
+	fmt.Println()
 
 }

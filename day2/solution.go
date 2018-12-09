@@ -87,9 +87,11 @@ func main() {
 
 	// Output the answer
 	end := time.Now()
+	fmt.Println()
 	fmt.Println("Check Sum: ", checkSum)
 	fmt.Println("Box Letters: ", commonLetters)
 	fmt.Println("Time Taken: ", end.Sub(start))
+	fmt.Println()
 
 }
 
