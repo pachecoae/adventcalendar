@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"time"
 )
 
 // Streamline error handling
@@ -15,6 +16,9 @@ func check(e error) {
 }
 
 func main() {
+
+	// Track how long it takes to solve the problem
+	start := time.Now()
 
 	// Read the input file data
 	data, err := os.Open("input.txt")
@@ -56,7 +60,10 @@ func main() {
 
 			// Check for a duplicate total
 			if totalMap[total] == 2 {
-				fmt.Print("\nTotal Count: ", total, "\n\n")
+				fmt.Print(
+					"\n",
+					"Total Count: ", total,
+				)
 				solutionFound = true
 				break
 			}
@@ -66,6 +73,13 @@ func main() {
 	}
 
 	// Output the answer
-	fmt.Print("\nTotal Sum: ", total, "\n\n")
+	end := time.Now()
+	fmt.Print(
+		"\n",
+		"Total Sum: ", total,
+		"\n",
+		"Time Taken: ", end.Sub(start),
+		"\n\n",
+	)
 
 }
