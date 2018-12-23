@@ -117,7 +117,7 @@ func main() {
 		// Input data into the map for each (x, y) coordinate
 		for x := rect.left; x < rect.left+rect.width; x++ {
 
-			// Counts will be recorded so that we can keep track of overlapping areas (count > 1)
+			// Check to see if there's a rectangle that has only 1 in each position in the map
 			for y := rect.top; y < rect.top+rect.height; y++ {
 				if rowMap[x][y] > 1 {
 					noCollisions = false
@@ -128,7 +128,6 @@ func main() {
 
 		if noCollisions {
 			id = rect.id
-			fmt.Println(id)
 		}
 
 	}
