@@ -223,19 +223,19 @@ func main() {
 
 	// Keep track of the minute slept the most and which guard did the sleeping
 	maxMinute := 0
-	maxMinuteId := ""
+	maxMinuteID := ""
 	maxMinuteSleepCount := 0
 	for id, minuteToSleepCount := range idToMinuteToSleepCount {
 		for minute, sleepCount := range minuteToSleepCount {
 			if maxMinuteSleepCount < sleepCount {
-				maxMinuteId = id
+				maxMinuteID = id
 				maxMinute = minute
 				maxMinuteSleepCount = sleepCount
 			}
 		}
 	}
 
-	maxMinuteIDInt, err := strconv.Atoi(maxMinuteId)
+	maxMinuteIDInt, err := strconv.Atoi(maxMinuteID)
 	check(err)
 
 	// Find the highest count based on minute for the id
