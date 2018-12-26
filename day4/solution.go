@@ -10,6 +10,14 @@ import (
 	"time"
 )
 
+// guardLog to hold each guard's log data
+type guardLog struct {
+	id       string
+	statuses []bool
+	dates    []time.Time
+	sleepSum int
+}
+
 // LogEntry to hold the parsed information
 type LogEntry struct {
 	date time.Time
@@ -43,12 +51,6 @@ func (s *logEntrySorter) Less(i, j int) bool {
 type logEntrySorter struct {
 	entries []LogEntry
 	by      func(e1, e2 *LogEntry) bool
-}
-
-// RowKey to identify the row data in our table
-type RowKey struct {
-	id   int
-	date int
 }
 
 // Take in a regular expression with text and return the matched text as a rectangle
@@ -94,6 +96,30 @@ func parseLine(line string) (LogEntry, error) {
 
 }
 
+// Parse the log file for an id or a status
+func parseLog(log string) (string, bool) {
+
+	rNum, err := regexp.Compile("([0-9]+)")
+	check(err)
+
+	numSubmatches := rNum.FindAllStringSubmatch(log, -1)
+	if len(numSubmatches) >= 1 && len(numSubmatches[0]) > 1 {
+		id := numSubmatches[0][1]
+		return id, false
+	}
+
+	rBool, err := regexp.Compile("(falls)")
+	check(err)
+
+	boolSubmatches := rBool.FindAllStringSubmatch(log, -1)
+	isAsleep := len(boolSubmatches) >= 1 && len(boolSubmatches[0]) > 1
+	if isAsleep {
+		return "", true
+	}
+	return "", false
+
+}
+
 func main() {
 
 	// Track how long it takes to solve the problem
@@ -121,19 +147,94 @@ func main() {
 
 	}
 
-	// Sort the log entries by second, then minute
+	// Sort the log entries by date
 	date := func(e1, e2 *LogEntry) bool {
 		return e1.date.Before(e2.date)
 	}
 	By(date).Sort(allLogEntries)
 
+	// Now that the log entries are sorted, we can parse the log data for times when guards were awake or asleep
+	id := ""
+	idToGuardLog := make(map[string]guardLog, 0)
 	for _, logEntry := range allLogEntries {
-		fmt.Println(logEntry.date, ": ", logEntry.log)
+
+		// We only get one piece of information at a time (id or status)
+		parsedID, isAsleep := parseLog(logEntry.log)
+		if parsedID != "" {
+			id = parsedID
+			if _, ok := idToGuardLog[id]; !ok {
+				idToGuardLog[id] = guardLog{id, make([]bool, 0), make([]time.Time, 0), 0}
+			}
+			continue
+		}
+
+		// Update the statuses and dates on the guard log per entry
+		log := idToGuardLog[id]
+		idToGuardLog[id] = guardLog{id, append(log.statuses, isAsleep), append(log.dates, logEntry.date), 0}
+
+	}
+
+	// Keep track of the number of times a guard sleeps on any given minute
+	idToMinuteToSleepCount := make(map[string]map[int]int, 0)
+	for id, log := range idToGuardLog {
+
+		// Create a map for the id if it doesn't exist
+		if _, ok := idToMinuteToSleepCount[id]; !ok {
+			idToMinuteToSleepCount[id] = make(map[int]int, 0)
+		}
+
+		// Each state has a corresponding time, which we can use to map out minutes guards are asleep
+		for i, isAsleep := range log.statuses {
+
+			if isAsleep {
+				timeAsleep := log.dates[i+1].Sub(log.dates[i]).Minutes()
+				for minute := 0; minute < int(timeAsleep); minute++ {
+
+					// Update the id -> minute -> sleep count map
+					date := log.dates[i].Add(time.Minute * time.Duration(minute))
+					minute := date.Minute()
+					idToMinuteToSleepCount[id][minute]++
+
+					// Update the sum of time slept
+					log := idToGuardLog[id]
+					log.sleepSum++
+					idToGuardLog[id] = log
+
+				}
+			}
+			continue
+
+		}
+
+	}
+
+	// Find the id with the highest number of minutes slept
+	maxID := ""
+	maxCount := 0
+	for id, log := range idToGuardLog {
+		if maxCount < log.sleepSum {
+			maxCount = log.sleepSum
+			maxID = id
+		}
+	}
+
+	idInt, err := strconv.Atoi(maxID)
+	check(err)
+
+	// Find the highest count based on minute for the id
+	maxCount = 0
+	minute := 0
+	for m, sleepCount := range idToMinuteToSleepCount[maxID] {
+		if maxCount < sleepCount {
+			maxCount = sleepCount
+			minute = m
+		}
 	}
 
 	// Output the answer
 	end := time.Now()
 	fmt.Println()
+	fmt.Println("ID * Count: ", idInt*minute)
 	fmt.Println("Time Taken: ", end.Sub(start))
 	fmt.Println()
 
